@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen">
+    <!-- Navbar -->
+    <nav class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shadow-md">
+        <h1 class="font-bold text-lg text-amber-400">⚙️ Admin Control Panel</h1>
+        <button onclick="logoutAdmin()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-xl text-xs font-bold transition">Logout</button>
+    </nav>
+
+    <div class="max-w-6xl mx-auto p-6 space-y-8">
+        <!-- Tab Navigation -->
+        <div class="flex gap-2 bg-white p-2 rounded-2xl shadow-sm border border-slate-200 overflow-x-auto">
+            <button onclick="switchTab('menu')" id="btn-menu" class="flex-1 py-2.5 px-4 rounded-xl font-bold text-sm bg-slate-900 text-white transition whitespace-nowrap">Add Menu</button>
+            <button onclick="switchTab('finance')" id="btn-finance" class="flex-1 py-2.5 px-4 rounded-xl font-bold text-sm text-slate-600 hover:bg-slate-100 transition whitespace-nowrap">Income/Expense History</button>
+            <button onclick="switchTab('customers')" id="btn-customers" class="flex-1 py-2.5 px-4 rounded-xl font-bold text-sm text-slate-600 hover:bg-slate-100 transition whitespace-nowrap">Customer List & Passwords</button>
+            <button onclick="switchTab('settings')" id="btn-settings" class="flex-1 py-2.5 px-4 rounded-xl font-bold text-sm text-slate-600 hover:bg-slate-100 transition whitespace-nowrap">Settings</button>
+        </div>
+
+        <!-- 1. Add Menu Section -->
+        <div id="tab-menu" class="admin-section bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+            <h3 class="font-bold text-lg text-slate-900 mb-4">+ Add Food Item to Menu</h3>
+            <form onsubmit="addMenuItem(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <input type="text" id="itemName" placeholder="Item Name (e.g. Paneer Tikka)" required class="border p-3 rounded-xl text-sm">
+                <input type="number" id="itemPrice" placeholder="Price (₹)" required class="border p-3 rounded-xl text-sm">
+                <button type="submit" class="bg-slate-900 text-white font-bold rounded-xl text-sm hover:bg-slate-800 transition">Add Item</button>
+            </form>
+            <div id="menuList" class="space-y-2"></div>
+        </div>
+
+        <!-- 2. Income & Expense Section with Deletable History -->
+        <div id="tab-finance" class="admin-section hidden bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-6">
+            <h3 class="font-bold text-lg text-slate-900">💰 Income & Expense Summary & History</h3>
+            
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
+                    <p class="text-xs font-bold text-emerald-600 uppercase">Total Income</p>
+                    <h4 id="totalIncome" class="text-2xl font-extrabold text-emerald-900">₹0</h4>
+                </div>
+                <div class="p-4 bg-red-50 border border-red-200 rounded-xl">
+                    <p class="text-xs font-bold text-red-600 uppercase">Total Expense</p>
+                    <h4 id="totalExpense" class="text-2xl font-extrabold text-red-900">₹0</h4>
+                </div>
+            </div>
+
+            <!-- Add Expense Form -->
+            <form onsubmit="addExpense(event)" class="flex gap-4 pt-2">
+                <input type="text" id="expDesc" placeholder="Expense Reason (e.g. Vegetables, Electricity)" required class="border p-3 rounded-xl text-sm flex-1">
+                <input type="number" id="expAmount" placeholder="Amount (₹)" required class="border p-3 rounded-xl text-sm w-40">
+                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold px-6 rounded-xl text-sm transition">Add Expense</button>
+            </form>
+
+            <!-- History Tables Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
+                
+                <!-- Income History Table -->
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h4 class="font-bold text-slate-800 text-sm">🟢 Income History (Orders)</h4>
+                        <button onclick="clearAllIncome()" class="text-xs text-red-600 hover:underline font-bold">Clear All</button>
+                    </div>
+                    <div class="overflow-x-auto border rounded-xl">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-500 uppercase">
+                                    <th class="p-2.5">Bill No / Date</th>
+                                    <th class="p-2.5">Customer</th>
+                                    <th class="p-2.5 text-right">Action</th>
+                                    <th class="p-2.5 text-right">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="incomeHistoryTable" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Expense History Table -->
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h4 class="font-bold text-slate-800 text-sm">🔴 Expense History</h4>
+                        <button onclick="clearAllExpense()" class="text-xs text-red-600 hover:underline font-bold">Clear All</button>
+                    </div>
+                    <div class="overflow-x-auto border rounded-xl">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-500 uppercase">
+                                    <th class="p-2.5">Reason / Description</th>
+                                    <th class="p-2.5 text-right">Action</th>
+                                    <th class="p-2.5 text-right">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expenseHistoryTable" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- 3. Customer List & Deletion Section -->
+        <div id="tab-customers" class="admin-section hidden bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+            <h3 class="font-bold text-lg text-slate-900">👥 Customer Usernames, Passwords & Deletion</h3>
+            <form onsubmit="addNewCustomer(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <input type="text" id="custName" placeholder="Full Name" required class="border p-2.5 rounded-xl text-sm">
+                <input type="text" id="custUser" placeholder="Unique Username" required class="border p-2.5 rounded-xl text-sm">
+                <input type="text" id="custPass" placeholder="Password" required class="border p-2.5 rounded-xl text-sm">
+                <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl text-sm transition">Create Customer</button>
+            </form>
+            <div class="overflow-x-auto mt-4">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-500 text-xs uppercase">
+                            <th class="p-3">Name</th>
+                            <th class="p-3 text-amber-700">Username</th>
+                            <th class="p-3 text-red-600">Password</th>
+                            <th class="p-3 text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customerTableBody" class="divide-y text-sm"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 4. Settings Section (Secure Password Change) -->
+        <div id="tab-settings" class="admin-section hidden bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+            <h3 class="font-bold text-lg text-slate-900">⚙️ Change Admin Password</h3>
+            <form onsubmit="changeAdminPassword(event)" class="space-y-4 max-w-md">
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Current Password</label>
+                    <input type="password" id="currentAdminPass" placeholder="Purana password daalein" required class="border p-3 rounded-xl text-sm w-full">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-500 mb-1">New Password</label>
+                    <input type="password" id="newAdminPass" placeholder="Naya password daalein" required class="border p-3 rounded-xl text-sm w-full">
+                </div>
+                <button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl text-sm w-full transition">Update Password</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        if(localStorage.getItem('isAdminLoggedIn') !== 'true') window.location.href = 'admin_login.html';
+
+        function logoutAdmin() {
+            localStorage.removeItem('isAdminLoggedIn');
+            window.location.href = 'index.html';
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.admin-section').forEach(el => el.classList.add('hidden'));
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            document.querySelectorAll('button[id^="btn-"]').forEach(b => {
+                b.classList.remove('bg-slate-900', 'text-white');
+                b.classList.add('text-slate-600');
+            });
+            document.getElementById('btn-' + tabId).classList.add('bg-slate-900', 'text-white');
+            document.getElementById('btn-' + tabId).classList.remove('text-slate-600');
+        }
+
+        let menu = JSON.parse(localStorage.getItem('hotelMenu')) || [{name: 'Paneer Butter Masala', price: 250}, {name: 'Veg Biryani', price: 180}];
+        let customers = JSON.parse(localStorage.getItem('hotelCustomers')) || [];
+        let expenses = JSON.parse(localStorage.getItem('hotelExpenses')) || [];
+        let orders = JSON.parse(localStorage.getItem('hotelOrders')) || [];
+
+        function renderMenu() {
+            document.getElementById('menuList').innerHTML = menu.map((m, i) => `
+                <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border">
+                    <span>${m.name} - <b>₹${m.price}</b></span>
+                    <button onclick="deleteMenu(${i})" class="text-red-500 text-xs font-bold">Delete</button>
+                </div>
+            `).join('');
+            localStorage.setItem('hotelMenu', JSON.stringify(menu));
+        }
+
+        function addMenuItem(e) {
+            e.preventDefault();
+            menu.push({name: document.getElementById('itemName').value, price: Number(document.getElementById('itemPrice').value)});
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemPrice').value = '';
+            renderMenu();
+        }
+
+        function deleteMenu(i) {
+            menu.splice(i, 1);
+            renderMenu();
+        }
+
+        function renderCustomers() {
+            customers = JSON.parse(localStorage.getItem('hotelCustomers')) || [];
+            const tbody = document.getElementById('customerTableBody');
+            if(customers.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400 text-xs">Koi customer nahi hai.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = customers.map((c, index) => `
+                <tr class="hover:bg-slate-50">
+                    <td class="p-3 font-medium">${c.name || 'N/A'}</td>
+                    <td class="p-3 font-mono font-bold text-amber-700">${c.username}</td>
+                    <td class="p-3 font-mono font-bold text-red-600 bg-red-50">${c.password}</td>
+                    <td class="p-3 text-right">
+                        <button onclick="deleteCustomer(${index})" class="bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1.5 rounded-lg text-xs font-bold transition">🗑️ Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function addNewCustomer(e) {
+            e.preventDefault();
+            const name = document.getElementById('custName').value;
+            const username = document.getElementById('custUser').value;
+            const password = document.getElementById('custPass').value;
+
+            if(customers.some(c => c.username.toLowerCase() === username.toLowerCase())) {
+                alert('⚠️ Ye username pehle se exist karta hai!');
+                return;
+            }
+
+            customers.push({name, username, password});
+            localStorage.setItem('hotelCustomers', JSON.stringify(customers));
+            document.getElementById('custName').value = '';
+            document.getElementById('custUser').value = '';
+            document.getElementById('custPass').value = '';
+            renderCustomers();
+            alert('Customer successfully create ho gaya!');
+        }
+
+        function deleteCustomer(index) {
+            if(confirm(`Kya aap "${customers[index].username}" account delete karna chahte hain?`)) {
+                customers.splice(index, 1);
+                localStorage.setItem('hotelCustomers', JSON.stringify(customers));
+                renderCustomers();
+                alert('Customer delete kar diya gaya hai!');
+            }
+        }
+
+        function renderFinance() {
+            let ordersList = JSON.parse(localStorage.getItem('hotelOrders')) || [];
+            let expList = JSON.parse(localStorage.getItem('hotelExpenses')) || [];
+
+            let totalInc = ordersList.reduce((s, o) => s + o.total, 0);
+            let totalExp = expList.reduce((s, ex) => s + ex.amount, 0);
+
+            document.getElementById('totalIncome').innerText = '₹' + totalInc;
+            document.getElementById('totalExpense').innerText = '₹' + totalExp;
+
+            // Income History Table with Delete
+            const incTable = document.getElementById('incomeHistoryTable');
+            if (ordersList.length === 0) {
+                incTable.innerHTML = `<tr><td colspan="4" class="p-3 text-center text-slate-400">Koi income history nahi hai.</td></tr>`;
+            } else {
+                incTable.innerHTML = ordersList.slice().reverse().map((o, idx) => {
+                    let originalIndex = ordersList.length - 1 - idx;
+                    return `
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-2.5 font-mono"><b>${o.billNo}</b><br><span class="text-[10px] text-slate-400">${o.date}</span></td>
+                            <td class="p-2.5 font-medium">${o.customerName}</td>
+                            <td class="p-2.5 text-right">
+                                <button onclick="deleteIncome(${originalIndex})" class="text-red-500 font-bold hover:underline">Delete</button>
+                            </td>
+                            <td class="p-2.5 text-right font-bold text-emerald-600">₹${o.total}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            // Expense History Table with Delete
+            const expTable = document.getElementById('expenseHistoryTable');
+            if (expList.length === 0) {
+                expTable.innerHTML = `<tr><td colspan="3" class="p-3 text-center text-slate-400">Koi expense history nahi hai.</td></tr>`;
+            } else {
+                expTable.innerHTML = expList.slice().reverse().map((ex, idx) => {
+                    let originalIndex = expList.length - 1 - idx;
+                    return `
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-2.5 font-medium">${ex.desc}</td>
+                            <td class="p-2.5 text-right">
+                                <button onclick="deleteExpense(${originalIndex})" class="text-red-500 font-bold hover:underline">Delete</button>
+                            </td>
+                            <td class="p-2.5 text-right font-bold text-red-600">₹${ex.amount}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+
+        function addExpense(e) {
+            e.preventDefault();
+            let expList = JSON.parse(localStorage.getItem('hotelExpenses')) || [];
+            expList.push({desc: document.getElementById('expDesc').value, amount: Number(document.getElementById('expAmount').value)});
+            localStorage.setItem('hotelExpenses', JSON.stringify(expList));
+            document.getElementById('expDesc').value = '';
+            document.getElementById('expAmount').value = '';
+            renderFinance();
+        }
+
+        function deleteIncome(index) {
+            let ordersList = JSON.parse(localStorage.getItem('hotelOrders')) || [];
+            if(confirm('Kya aap is income order record ko delete karna chahte hain?')) {
+                ordersList.splice(index, 1);
+                localStorage.setItem('hotelOrders', JSON.stringify(ordersList));
+                renderFinance();
+            }
+        }
+
+        function deleteExpense(index) {
+            let expList = JSON.parse(localStorage.getItem('hotelExpenses')) || [];
+            if(confirm('Kya aap is expense record ko delete karna chahte hain?')) {
+                expList.splice(index, 1);
+                localStorage.setItem('hotelExpenses', JSON.stringify(expList));
+                renderFinance();
+            }
+        }
+
+        function clearAllIncome() {
+            if(confirm('Kya aap saari Income history ko delete karna chahte hain?')) {
+                localStorage.removeItem('hotelOrders');
+                renderFinance();
+            }
+        }
+
+        function clearAllExpense() {
+            if(confirm('Kya aap saari Expense history ko delete karna chahte hain?')) {
+                localStorage.removeItem('hotelExpenses');
+                renderFinance();
+            }
+        }
+
+        function changeAdminPassword(e) {
+            e.preventDefault();
+            const currentInput = document.getElementById('currentAdminPass').value;
+            const newInput = document.getElementById('newAdminPass').value;
+            const storedAdminPass = localStorage.getItem('adminPass') || 'admin123';
+
+            if(currentInput !== storedAdminPass) {
+                alert('⚠️ Purana password galat hai!');
+                return;
+            }
+            localStorage.setItem('adminPass', newInput);
+            alert('✅ Admin Password successfully update ho gaya!');
+            document.getElementById('currentAdminPass').value = '';
+            document.getElementById('newAdminPass').value = '';
+        }
+
+        renderMenu();
+        renderCustomers();
+        renderFinance();
+    </script>
+</body>
+</html>

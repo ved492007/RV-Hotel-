@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <title>Customer Menu & Cart</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+    <!-- Navbar -->
+    <nav class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shadow-md">
+        <h1 class="font-bold text-lg text-amber-400">🍽️ Restaurant Menu</h1>
+        <button onclick="logoutCustomer()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-xl text-xs font-bold transition">Logout</button>
+    </nav>
+
+    <div class="max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Menu Display -->
+        <div class="md:col-span-2 space-y-4">
+            <h2 class="text-xl font-bold text-slate-900">Available Dishes</h2>
+            <div id="customerMenuList" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+        </div>
+
+        <!-- Cart Sidebar -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 h-fit space-y-4">
+            <h3 class="font-bold text-lg text-slate-900">🛒 Your Cart</h3>
+            <div id="cartList" class="divide-y space-y-2 text-sm"></div>
+            <div class="border-t pt-4 space-y-2 font-bold text-sm">
+                <div class="flex justify-between"><span>Total:</span><span id="cartTotal">₹0</span></div>
+            </div>
+            <button onclick="checkoutOrder()" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-3 rounded-xl transition shadow-md">
+                Generate Bill & Print
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const currentCust = JSON.parse(localStorage.getItem('currentCustomer'));
+        if(!currentCust) window.location.href = 'index.html';
+
+        let menu = JSON.parse(localStorage.getItem('hotelMenu')) || [];
+        let cart = [];
+
+        function renderCustomerMenu() {
+            document.getElementById('customerMenuList').innerHTML = menu.map((m, idx) => `
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex justify-between items-center">
+                    <div>
+                        <h4 class="font-bold text-slate-900">${m.name}</h4>
+                        <p class="text-amber-600 font-bold text-sm">₹${m.price}</p>
+                    </div>
+                    <button onclick="addToCart(${idx})" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-bold">Add</button>
+                </div>
+            `).join('');
+        }
+
+        function addToCart(index) {
+            const item = menu[index];
+            const existing = cart.find(c => c.name === item.name);
+            if(existing) existing.qty += 1;
+            else cart.push({...item, qty: 1});
+            renderCart();
+        }
+
+        function renderCart() {
+            let total = 0;
+            document.getElementById('cartList').innerHTML = cart.map(c => {
+                total += c.price * c.qty;
+                return `<div class="flex justify-between py-1"><span>${c.name} (x${c.qty})</span><span>₹${c.price * c.qty}</span></div>`;
+            }).join('');
+            document.getElementById('cartTotal').innerText = '₹' + total;
+        }
+
+        function checkoutOrder() {
+            if(cart.length === 0) {
+                alert('Cart khali hai!');
+                return;
+            }
+            let subtotal = cart.reduce((sum, c) => sum + (c.price * c.qty), 0);
+            let tax = Math.round(subtotal * 0.05);
+            let total = subtotal + tax;
+
+            const billData = {
+                billNo: 'BILL-' + Math.floor(1000 + Math.random() * 9000),
+                customerName: currentCust.name,
+                items: cart,
+                subtotal, tax, total,
+                date: new Date().toLocaleString()
+            };
+
+            let orders = JSON.parse(localStorage.getItem('hotelOrders')) || [];
+            orders.push(billData);
+            localStorage.setItem('hotelOrders', JSON.stringify(orders));
+            localStorage.setItem('currentBill', JSON.stringify(billData));
+
+            window.location.href = 'customer_bill.html';
+        }
+
+        function logoutCustomer() {
+            localStorage.removeItem('currentCustomer');
+            window.location.href = 'index.html';
+        }
+
+        renderCustomerMenu();
+    </script>
+</body>
+</html>

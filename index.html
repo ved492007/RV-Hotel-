@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grand Hotel - Customer Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-white min-h-screen flex items-center justify-center p-6">
+
+    <div class="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
+        <!-- Hotel Header -->
+        <div class="text-center mb-6">
+            <div class="w-16 h-16 bg-amber-500 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg font-extrabold text-slate-950 text-2xl">
+                RV
+            </div>
+            <h1 class="text-3xl font-extrabold text-amber-400">RV Hotel</h1>
+            <p class="text-slate-400 text-xs mt-1">Welcome</p>
+        </div>
+
+        <!-- Mode Switcher Tabs (Login vs Register) -->
+        <div class="flex bg-slate-800 p-1 rounded-xl mb-6">
+            <button onclick="toggleAuthMode('login')" id="tabLogin" class="flex-1 py-2 rounded-lg text-xs font-bold bg-amber-500 text-slate-950 transition">
+                Login
+            </button>
+            <button onclick="toggleAuthMode('register')" id="tabRegister" class="flex-1 py-2 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition">
+                New Register (Sign Up)
+            </button>
+        </div>
+
+        <!-- Alert Message Box -->
+        <div id="alertBox" class="hidden p-3 mb-4 rounded-xl text-xs font-semibold text-center"></div>
+
+        <!-- 1. LOGIN FORM -->
+        <form id="loginForm" onsubmit="handleCustomerLogin(event)" class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Username</label>
+                <input type="text" id="loginUser" required placeholder="Enter your username" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 text-white">
+            </div>
+            <div>
+                <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Password</label>
+                <input type="password" id="loginPass" required placeholder="••••••••" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 text-white">
+            </div>
+            <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-3.5 rounded-xl shadow-lg transition mt-2">
+                Login & View Menu 🍽️
+            </button>
+        </form>
+
+        <!-- 2. REGISTER FORM -->
+        <form id="registerForm" onsubmit="handleCustomerRegister(event)" class="space-y-4 hidden">
+            <div>
+                <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Full Name</label>
+                <input type="text" id="regName" required placeholder="Enter your full name" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 text-white">
+            </div>
+            <div>
+                <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Choose Username</label>
+                <input type="text" id="regUser" required placeholder="Create a new username" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 text-white">
+            </div>
+            <div>
+                <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Choose Password</label>
+                <input type="password" id="regPass" required placeholder="Create a new password" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 text-white">
+            </div>
+            <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-3.5 rounded-xl shadow-lg transition mt-2">
+                Create Account & Register ✨
+            </button>
+        </form>
+
+        <!-- Secret Staff Link -->
+        <div class="mt-8 pt-4 border-t border-slate-800/80 text-center">
+            <a href="admin_login.html" class="text-xs text-slate-600 hover:text-slate-400 transition">
+                Staff / Admin Login →
+            </a>
+        </div>
+    </div>
+
+    <script>
+        function toggleAuthMode(mode) {
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const tabLogin = document.getElementById('tabLogin');
+            const tabRegister = document.getElementById('tabRegister');
+            document.getElementById('alertBox').classList.add('hidden');
+
+            if (mode === 'login') {
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+                tabLogin.className = "flex-1 py-2 rounded-lg text-xs font-bold bg-amber-500 text-slate-950 transition";
+                tabRegister.className = "flex-1 py-2 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition";
+            } else {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                tabRegister.className = "flex-1 py-2 rounded-lg text-xs font-bold bg-emerald-500 text-slate-950 transition";
+                tabLogin.className = "flex-1 py-2 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition";
+            }
+        }
+
+        function showAlert(msg, type) {
+            const box = document.getElementById('alertBox');
+            box.innerText = msg;
+            box.className = `p-3 mb-4 rounded-xl text-xs font-semibold text-center ${type === 'error' ? 'bg-red-500/20 text-red-400' : 'bg-emerald-500/20 text-emerald-400'}`;
+        }
+
+        function handleCustomerRegister(e) {
+            e.preventDefault();
+            const name = document.getElementById('regName').value.trim();
+            const username = document.getElementById('regUser').value.trim();
+            const password = document.getElementById('regPass').value;
+
+            let customers = JSON.parse(localStorage.getItem('hotelCustomers')) || [];
+            if (customers.some(c => c.username.toLowerCase() === username.toLowerCase())) {
+                showAlert('⚠️ Ye Username pehle se kisi aur ne liya hai!', 'error');
+                return;
+            }
+
+            const newCustomer = { name, username, password };
+            customers.push(newCustomer);
+            localStorage.setItem('hotelCustomers', JSON.stringify(customers));
+            localStorage.setItem('currentCustomer', JSON.stringify(newCustomer));
+            showAlert('✅ Account ban gaya! Menu khul raha hai...', 'success');
+            setTimeout(() => window.location.href = 'customer_menu.html', 1000);
+        }
+
+        function handleCustomerLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById('loginUser').value.trim();
+            const p = document.getElementById('loginPass').value;
+
+            const customers = JSON.parse(localStorage.getItem('hotelCustomers')) || [];
+            const found = customers.find(c => c.username === u && c.password === p);
+
+            if (found) {
+                localStorage.setItem('currentCustomer', JSON.stringify(found));
+                showAlert('✅ Login successful!', 'success');
+                setTimeout(() => window.location.href = 'customer_menu.html', 800);
+            } else {
+                showAlert('⚠️ Incorrect ! Please Check', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

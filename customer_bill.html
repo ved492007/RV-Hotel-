@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <title>Printable Bill Receipt</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex items-center justify-center p-6">
+    <div class="max-w-md w-full bg-white p-8 rounded-2xl shadow-xl border border-slate-200">
+        <div id="billReceipt" class="p-4 border border-dashed border-slate-300 rounded-xl space-y-4">
+            <div class="text-center">
+                <h2 class="text-xl font-bold text-slate-900">RV HOTEL RESTAURANT</h2>
+                <p class="text-xs text-slate-500">Mall Road</p>
+            </div>
+            <div class="text-xs border-y py-2 space-y-1">
+                <p><strong>Bill No:</strong> <span id="bNo"></span></p>
+                <p><strong>Customer:</strong> <span id="bCust"></span></p>
+                <p><strong>Date:</strong> <span id="bDate"></span></p>
+            </div>
+            <table class="w-full text-xs text-left">
+                <thead>
+                    <tr class="border-b"><th class="py-1">Item</th><th class="py-1 text-center">Qty</th><th class="py-1 text-right">Price</th></tr>
+                </thead>
+                <tbody id="bItems"></tbody>
+            </table>
+            <div class="border-t pt-2 text-xs space-y-1">
+                <div class="flex justify-between"><span>Subtotal:</span><span id="bSub"></span></div>
+                <div class="flex justify-between"><span>GST (5%):</span><span id="bTax"></span></div>
+                <div class="flex justify-between font-bold text-sm pt-1 border-t"><span>Grand Total:</span><span id="bTot"></span></div>
+            </div>
+        </div>
+
+        <button onclick="window.print()" class="w-full mt-6 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-3 rounded-xl transition shadow-lg">
+            🖨️ Print Bill
+        </button>
+        <div class="mt-4 text-center">
+            <a href="customer_menu.html" class="text-xs text-blue-600 font-semibold hover:underline">← Back to Menu</a>
+        </div>
+    </div>
+
+    <script>
+        const bill = JSON.parse(localStorage.getItem('currentBill'));
+        if(bill) {
+            document.getElementById('bNo').innerText = bill.billNo;
+            document.getElementById('bCust').innerText = bill.customerName;
+            document.getElementById('bDate').innerText = bill.date;
+            document.getElementById('bSub').innerText = '₹' + bill.subtotal;
+            document.getElementById('bTax').innerText = '₹' + bill.tax;
+            document.getElementById('bTot').innerText = '₹' + bill.total;
+
+            document.getElementById('bItems').innerHTML = bill.items.map(i => `
+                <tr class="border-b border-slate-100">
+                    <td class="py-1">${i.name}</td>
+                    <td class="py-1 text-center">${i.qty}</td>
+                    <td class="py-1 text-right">₹${i.price * i.qty}</td>
+                </tr>
+            `).join('');
+        }
+    </script>
+</body>
+</html>
